@@ -56,6 +56,7 @@ module.exports = bundle => {
       readFile(path.resolve(s), (err, data) => {
         if (err) throw err
         if (bundle.options.minify) {
+          logger.log('Data: ' + data)
           const res = uglifyJS.minify(data)
           if (res.error) throw res.error
           data = res.code
