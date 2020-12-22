@@ -30,6 +30,8 @@ module.exports = bundle => {
 
     let config = Object.assign({}, workboxConfig ? workboxConfig : DEFAULT_CONFIG)
 
+    logger.log('Config: ' + JSON.stringify(config, null, 2))
+
     if (pkg.workbox) {
       if (pkg.workbox.importScripts && Array.isArray(pkg.workbox.importScripts)) {
         config.importScripts = pkg.workbox.importScripts
@@ -54,7 +56,9 @@ module.exports = bundle => {
       readFile(path.resolve(s), (err, data) => {
         if (err) throw err
         if (bundle.options.minify) {
-          data = uglifyJS.minify(data).code
+          const res = uglifyJS.minify(data)
+          if (res.error) throw res.error
+          data = res.code
         }
         const impDest = path.resolve(pathOut, /[^\/]+$/.exec(s)[0])
         writeFileSync(impDest, data)
@@ -72,7 +76,9 @@ module.exports = bundle => {
         swString = swString.swString
         logger.log('Service worker generated')
         if (bundle.options.minify) {
-          swString = uglifyJS.minify(swString).code
+          const res = uglifyJS.minify(swString)
+          if (res.error) throw res.error
+          swString = res.code
           logger.log('Service worker minified')
         }
         writeFileSync(path.join(dest, 'sw.js'), swString)
