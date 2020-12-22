@@ -88,10 +88,11 @@ module.exports = bundle => {
     readFile(entry, 'utf8', (err, data) => {
       if (err) logger.error(err)
       if (!data.includes('serviceWorker.register')) {
+        const swUrl = [bundle.options.publicUrl, 'sw.js'].join('')
         let swTag = `
         if ('serviceWorker' in navigator) {
           window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/sw.js');
+            navigator.serviceWorker.register('${swUrl}');
           });
         }
       `
