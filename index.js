@@ -2,9 +2,16 @@ const { generateSWString } = require('workbox-build')
 const { readFile, writeFileSync } = require('fs')
 const logger = require('@parcel/logger')
 const path = require('path')
-const uglifyJS = require('terser');
+const terser = require('terser');
 
 const workboxConfig = require( '../../.workbox-config.js' )
+
+// TODO: Fix minification by (probably) upgrading terser from 4.8.0
+const minify = (s) => {
+  const res = terser.minify(s)
+  if (res.error) throw res.error
+  return res.code
+}
 
 module.exports = bundle => {
   bundle.on('buildEnd', async () => {
@@ -55,12 +62,6 @@ module.exports = bundle => {
     config.importScripts.forEach(s => {
       readFile(path.resolve(s), (err, data) => {
         if (err) throw err
-        if (bundle.options.minify) {
-          logger.log('Data: ' + data)
-          const res = uglifyJS.minify(data)
-          if (res.error) throw res.error
-          data = res.code
-        }
         const impDest = path.resolve(pathOut, /[^\/]+$/.exec(s)[0])
         writeFileSync(impDest, data)
         logger.log(`Imported ${s} to ${impDest}`)
@@ -76,12 +77,6 @@ module.exports = bundle => {
       .then(swString => {
         swString = swString.swString
         logger.log('Service worker generated')
-        if (bundle.options.minify) {
-          const res = uglifyJS.minify(swString)
-          if (res.error) throw res.error
-          swString = res.code
-          logger.log('Service worker minified')
-        }
         writeFileSync(path.join(dest, 'sw.js'), swString)
         logger.log(`Service worker written to ${dest}/sw.js`)
       })
@@ -100,16 +95,11 @@ module.exports = bundle => {
           });
         }
       `
-        if (bundle.options.minify) {
-          swTag = uglifyJS.minify(swTag)
-          swTag = `<script>${swTag.code}</script></body>`
-        } else {
-          swTag = `
+        swTag = `
         <script>
         ${swTag}
         </script>
       </body>`
-        }
         data = data.replace('</body>', swTag)
         writeFileSync(entry, data)
         logger.log(`Service worker injected into ${dest}/index.html`)
