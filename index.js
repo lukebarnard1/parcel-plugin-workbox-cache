@@ -58,7 +58,7 @@ module.exports = bundle => {
         }
         const impDest = path.resolve(pathOut, /[^\/]+$/.exec(s)[0])
         writeFileSync(impDest, data)
-        logger.success(`Imported ${s} to ${impDest}`)
+        logger.log(`Imported ${s} to ${impDest}`)
       })
     })
 
@@ -70,13 +70,13 @@ module.exports = bundle => {
     generateSWString(config)
       .then(swString => {
         swString = swString.swString
-        logger.success('Service worker generated')
+        logger.log('Service worker generated')
         if (bundle.options.minify) {
           swString = uglifyJS.minify(swString).code
-          logger.success('Service worker minified')
+          logger.log('Service worker minified')
         }
         writeFileSync(path.join(dest, 'sw.js'), swString)
-        logger.success(`Service worker written to ${dest}/sw.js`)
+        logger.log(`Service worker written to ${dest}/sw.js`)
       })
       .catch(err => {
         logger.error(err)
@@ -105,7 +105,7 @@ module.exports = bundle => {
         }
         data = data.replace('</body>', swTag)
         writeFileSync(entry, data)
-        logger.success(`Service worker injected into ${dest}/index.html`)
+        logger.log(`Service worker injected into ${dest}/index.html`)
       }
     })
   })
